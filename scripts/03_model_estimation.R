@@ -17,17 +17,17 @@ currencies <- env_data$currencies
 loo_data_list <- loo_env$loo_data_list
 loo_static_betas_table <- loo_env$loo_static_betas_table
 
-# 3. Define the Static OLS Baseline (Main Data)
+# 3. Define the Static OLS Baseline (Main Data) - INTERCEPT REMOVED
 static_betas <- sapply(currencies, function(ccy) {
-  formula_str <- paste(ccy, "~ PC1_Dollar + PC2_Carry")
+  formula_str <- paste(ccy, "~ PC1_Dollar + PC2_Carry - 1")
   model <- lm(as.formula(formula_str), data = as.data.frame(all_data[train_window]))
   return(coef(model))
 })
 static_betas_table <- t(static_betas)
 
-# 4. Define the 252-day Rolling OLS Function
+# 4. Define the 252-day Rolling OLS Function - INTERCEPT REMOVED
 run_rolling_ols <- function(data_subset) {
-  model <- lm(data_subset[, 1] ~ data_subset[, 2] + data_subset[, 3])
+  model <- lm(data_subset[, 1] ~ data_subset[, 2] + data_subset[, 3] - 1)
   return(coef(model))
 }
 
@@ -37,12 +37,12 @@ get_rolling_oos <- function(ccy, data_source) {
     data = rolling_data, width = 252, FUN = run_rolling_ols, 
     by.column = FALSE, align = "right"
   )
-  colnames(rolling_betas) <- c("Alpha", "Beta_PC1", "Beta_PC2")
+  colnames(rolling_betas) <- c("Beta_PC1", "Beta_PC2")
   # Return the lagged Out-of-Sample betas to prevent look-ahead bias
   return(lag.xts(as.xts(rolling_betas))[test_window])
 }
 
-# 5. Define the State-Space Kalman Filter Function
+# 5. Define the State-Space Kalman Filter Function - INTERCEPT REMOVED
 run_kalman_filter <- function(target_ccy, data_full, train_win, test_win) {
   Y_xts <- 100 * data_full[, target_ccy]
   X_xts <- data_full[, c("PC1_Dollar", "PC2_Carry")]
@@ -54,10 +54,10 @@ run_kalman_filter <- function(target_ccy, data_full, train_win, test_win) {
   
   # State-Space specification: Random Walk (Phi = I) with diffuse priors (C0)
   build_dlm <- function(par, predictors) {
-    mod <- dlmModReg(predictors, addInt = TRUE,
+    mod <- dlmModReg(predictors, addInt = FALSE,
                      dV = exp(par[1]),
-                     dW = exp(par[2:4]))
-    mod$C0 <- diag(1e7, 3) 
+                     dW = exp(par[2:3])) # Reduced to 2 state variances
+    mod$C0 <- diag(1e7, 2)               # Reduced to 2x2 matrix
     return(mod)
   }
   
@@ -66,9 +66,9 @@ run_kalman_filter <- function(target_ccy, data_full, train_win, test_win) {
   
   # Multi-start optimization to prevent local minima in Maximum Likelihood Estimation
   starts <- list(
-    c(log(0.5 * v0), rep(log(1e-5), 3)),
-    c(log(v0), rep(log(1e-4), 3)),
-    c(log(0.1 * v0), rep(log(1e-6), 3))
+    c(log(0.5 * v0), rep(log(1e-5), 2)),
+    c(log(v0), rep(log(1e-4), 2)),
+    c(log(0.1 * v0), rep(log(1e-6), 2))
   )
   
   fits <- lapply(starts, function(st) {
@@ -88,7 +88,7 @@ run_kalman_filter <- function(target_ccy, data_full, train_win, test_win) {
   
   states <- dropFirst(filtered_out$m) / 100
   states_xts <- as.xts(states, order.by = index(Y_xts))
-  colnames(states_xts) <- c("Alpha", "Beta_PC1", "Beta_PC2")
+  colnames(states_xts) <- c("Beta_PC1", "Beta_PC2") # Removed Alpha column
   
   # Lag states for actionable out-of-sample hedging
   actionable_hedge_ratios <- lag.xts(states_xts)
