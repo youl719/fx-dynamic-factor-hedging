@@ -21,7 +21,7 @@ Traditional static factor hedging relies on constant factor loadings estimated o
 fx-dynamic-factor-hedging/
 ├── data/                    # Processed datasets and intermediate .rds evaluation objects
 ├── scripts/                 # Modular R pipeline
-│   ├── 01_...               # Data cleaning and factor construction
+│   ├── 01_data_and_factors.R              # Data cleaning and factor construction
 │   ├── 02_loo_robustness.R  # Leave-one-out currency sensitivity analysis
 │   ├── 04_evaluation_metrics.R # Out-of-sample variance, 99% VaR, and drawdown metrics
 │   └── 05_plots_and_tables.R   # Generation of publication figures and summary tables
@@ -30,4 +30,4 @@ fx-dynamic-factor-hedging/
 │   ├── figures/             # Crisis and LOO diagnostic plots (AUD, JPY)
   │   └── tables/              # Main and LOO performance comparison tables (.csv)
 └── .gitignore
-'''
+
