@@ -26,7 +26,7 @@ fx-dynamic-factor-hedging/
 │   ├── 04_evaluation_metrics.R # Out-of-sample variance, 99% VaR, and drawdown metrics
 │   └── 05_plots_and_tables.R   # Generation of publication figures and summary tables
 ├── outputs/
-│   ├── Financial_econometrics_report.pdf  # Final research report[cite: 1]
+│   ├── Financial_econometrics_report.pdf  # Final research report
 │   ├── figures/             # Crisis and LOO diagnostic plots (AUD, JPY)
   │   └── tables/              # Main and LOO performance comparison tables (.csv)
 └── .gitignore
