@@ -41,7 +41,7 @@ build_loo <- function(ccy) {
   mod <- lm(as.formula(paste(ccy, "~ PC1_Dollar + PC2_Carry")),
             data = as.data.frame(dat[train_window]))
   
-  list(data = dat, static = coef(mod), cors = abs(cors))
+  list(data = dat, static = coef(mod), cors = abs(cors), eigenvectors = rot)
 }
 
 # 4. Execute LOO for all currencies
@@ -49,12 +49,12 @@ loo_objs <- setNames(lapply(currencies, build_loo), currencies)
 loo_data_list <- lapply(loo_objs, `[[`, "data")
 loo_static_betas_table <- t(sapply(loo_objs, `[[`, "static"))
 loo_cors <- round(t(sapply(loo_objs, `[[`, "cors")), 3)
+loo_eigenvectors <- lapply(loo_objs, `[[`, "eigenvectors")
 
 # 5. Save LOO outputs for the modeling script
 saveRDS(list(
   loo_data_list = loo_data_list,
   loo_static_betas_table = loo_static_betas_table,
-  loo_cors = loo_cors
+  loo_cors = loo_cors,
+  loo_eigenvectors = loo_eigenvectors
 ), file = "data/02_loo_data.rds")
-
-print("LOO PCA complete. Objects saved to data/02_loo_data.rds")
