@@ -17,6 +17,7 @@ Traditional static factor hedging relies on constant factor loadings estimated o
 > **Full Paper:** See [`outputs/Financial_econometrics_report.pdf`](outputs/Financial_econometrics_report.pdf) 
 
 ## Repository Structure
+```text
 fx-dynamic-factor-hedging/
 ├── data/                    # Processed datasets and intermediate .rds evaluation objects
 ├── scripts/                 # Modular R pipeline
@@ -29,3 +30,4 @@ fx-dynamic-factor-hedging/
 │   ├── figures/             # Crisis and LOO diagnostic plots (AUD, JPY)
   │   └── tables/              # Main and LOO performance comparison tables (.csv)
 └── .gitignore
+'''
